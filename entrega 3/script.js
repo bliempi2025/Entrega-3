@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} type - El tipo de notificación ('success' o 'error').
      */
     const displayNotification = (message, type) => {
-        console.log(`Mostrando notificación: [${type}] ${message}`); // console.log()
+        console.log(`Mostrando notificación: [${type}] ${message}`);
         
         notificationArea.innerHTML = `<div class="notification ${type}">${message}</div>`;
         
@@ -31,13 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Se activa al hacer clic en un botón de acción de una fila de la tabla.
      * @param {HTMLElement} buttonElement - El elemento botón que fue clickeado (paso de 'this').
-     * @param {object} runData - Los datos completos del speedrun asociado a esa fila
+     * @param {object} runData - Los datos completos del speedrun asociado a esa fila.
      */
     const showRunDetails = (buttonElement, runData) => {
-        console.log("Mostrando detalles para el run ID:", runData.id); // console.log()
-        console.log("Elemento 'this' recibido:", buttonElement); // console.log()
+        console.log("Mostrando detalles para el run ID:", runData.id);
+        console.log("Elemento 'this' recibido:", buttonElement);
         
-        // Muestra los detalles usando una simple alerta
+        // Muestra los detalles del run
         const details = `
             Juego: ${runData.game}
             Jugador: ${runData.nickname}
@@ -45,13 +45,22 @@ document.addEventListener('DOMContentLoaded', () => {
             Video: ${runData.video_link}
         `;
         alert(details);
+
+        // 🔹 Nuevo: abrir el enlace del video si existe
+        if (runData.video_link && runData.video_link.trim() !== "") {
+            console.log("Abriendo video:", runData.video_link);
+            window.open(runData.video_link, '_blank');
+        } else {
+            console.log("No hay link de video disponible para este run.");
+            displayNotification('Este speedrun no tiene un enlace de video.', 'error');
+        }
     };
 
     /**
      * FETCH para obtener los speedruns desde el servidor y mostrarlos en la tabla.
      */
     const fetchAndDisplayRuns = async () => {
-        console.log('Iniciando fetch para obtener runs...'); // console.log()
+        console.log('Iniciando fetch para obtener runs...');
         
         try {
             const response = await fetch('listar_runs.php');
@@ -73,14 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td>${run.nickname}</td>
                         <td>${run.category}</td>
                         <td>${run.time_record}</td>
-                        <td><button class="btn-small">Ver Video</button></td> 
+                        <td><button type="button" class="btn-small">Ver Video</button></td>
                     `;
 
-                    
-                    // Se añade el listener al botón recién creado.
+                    // Listener al botón recién creado
                     const detailButton = row.querySelector('.btn-small');
                     detailButton.addEventListener('click', function() {
-                        // 'this' se refiere al botón que fue clickeado.
                         showRunDetails(this, run);
                     });
 
@@ -93,11 +100,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    
     // Maneja el envío del formulario para registrar un nuevo speedrun.
     submitRunForm.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Evitar que la página se recargue
-        console.log('Formulario de registro enviado.'); // console.log()
+        event.preventDefault();
+        console.log('Formulario de registro enviado.');
 
         const formData = new FormData(submitRunForm);
 
@@ -111,8 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.status === 'success') {
                 displayNotification(result.message, 'success');
-                submitRunForm.reset(); // Limpiar el formulario
-                fetchAndDisplayRuns(); // Actualizar la tabla con el nuevo registro
+                submitRunForm.reset();
+                fetchAndDisplayRuns();
             } else {
                 displayNotification(result.message, 'error');
             }
@@ -123,7 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    
     // Carga los datos del leaderboard cuando se hace clic en el botón.
     loadRunsBtn.addEventListener('click', fetchAndDisplayRuns);
     
@@ -139,4 +144,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carga inicial de los datos al entrar a la página
     fetchAndDisplayRuns();
-});
