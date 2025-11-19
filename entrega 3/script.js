@@ -142,5 +142,4 @@ document.addEventListener('DOMContentLoaded', () => {
         logo.style.opacity = '1';
     });
 
-    // Carga inicial de los datos al entrar a la página
-    fetchAndDisplayRuns();
+});
