@@ -18,11 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} type - El tipo de notificación ('success' o 'error').
      */
     const displayNotification = (message, type) => {
-        console.log(`Mostrando notificación: [${type}] ${message}`); // console.log()
+        console.log(`Mostrando notificación: [${type}] ${message}`);
         
         notificationArea.innerHTML = `<div class="notification ${type}">${message}</div>`;
         
-        // La notificación desaparece después de 5 segundos
         setTimeout(() => {
             notificationArea.innerHTML = '';
         }, 5000);
@@ -30,14 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Se activa al hacer clic en un botón de acción de una fila de la tabla.
-     * @param {HTMLElement} buttonElement - El elemento botón que fue clickeado (paso de 'this').
-     * @param {object} runData - Los datos completos del speedrun asociado a esa fila
+     * @param {HTMLElement} buttonElement - El elemento botón que fue clickeado.
+     * @param {object} runData - Los datos completos del speedrun asociado a esa fila.
      */
     const showRunDetails = (buttonElement, runData) => {
-        console.log("Mostrando detalles para el run ID:", runData.id); // console.log()
-        console.log("Elemento 'this' recibido:", buttonElement); // console.log()
+        console.log("Mostrando detalles para el run ID:", runData.id);
+        console.log("Elemento 'this' recibido:", buttonElement);
         
-        // Muestra los detalles usando una simple alerta
         const details = `
             Juego: ${runData.game}
             Jugador: ${runData.nickname}
@@ -51,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * FETCH para obtener los speedruns desde el servidor y mostrarlos en la tabla.
      */
     const fetchAndDisplayRuns = async () => {
-        console.log('Iniciando fetch para obtener runs...'); // console.log()
+        console.log('Iniciando fetch para obtener runs...');
         
         try {
             const response = await fetch('listar_runs.php');
@@ -60,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const runs = await response.json();
             
-            leaderboardBody.innerHTML = ''; // Limpiar la tabla antes de añadir nuevos datos
+            leaderboardBody.innerHTML = '';
 
             if (runs.length === 0) {
                 leaderboardBody.innerHTML = '<tr><td colspan="5">Aún no hay speedruns registrados. ¡Sé el primero!</td></tr>';
@@ -73,14 +71,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         <td>${run.nickname}</td>
                         <td>${run.category}</td>
                         <td>${run.time_record}</td>
-                        <td><button class="btn-small">Ver Video</button></td> 
+                        <td><button class="btn-small">Ver Video</button></td>
                     `;
 
-                    
-                    // Se añade el listener al botón recién creado.
                     const detailButton = row.querySelector('.btn-small');
                     detailButton.addEventListener('click', function() {
-                        // 'this' se refiere al botón que fue clickeado.
                         showRunDetails(this, run);
                     });
 
@@ -93,16 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    
     // Maneja el envío del formulario para registrar un nuevo speedrun.
     submitRunForm.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Evitar que la página se recargue
-        console.log('Formulario de registro enviado.'); // console.log()
+        event.preventDefault();
+        console.log('Formulario de registro enviado.');
 
         const formData = new FormData(submitRunForm);
 
         try {
-            const response = await fetch('registrar_run.php', {
+            const response = await fetch('registrar_runs.php', { // ← CORREGIDO AQUÍ
                 method: 'POST',
                 body: formData
             });
@@ -111,8 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.status === 'success') {
                 displayNotification(result.message, 'success');
-                submitRunForm.reset(); // Limpiar el formulario
-                fetchAndDisplayRuns(); // Actualizar la tabla con el nuevo registro
+                submitRunForm.reset();
+                fetchAndDisplayRuns();
             } else {
                 displayNotification(result.message, 'error');
             }
@@ -123,11 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    
-    // Carga los datos del leaderboard cuando se hace clic en el botón.
     loadRunsBtn.addEventListener('click', fetchAndDisplayRuns);
-    
-    // Evento 3 - Ejemplo adicional de evento (mouseover sobre el logo)
+
+    // Evento extra para cumplir la pauta (mouseover)
     const logo = document.getElementById('logo');
     logo.addEventListener('mouseover', () => {
         console.log("Mouse sobre el logo.");
@@ -137,6 +129,6 @@ document.addEventListener('DOMContentLoaded', () => {
         logo.style.opacity = '1';
     });
 
-    // Carga inicial de los datos al entrar a la página
+    // Carga inicial
     fetchAndDisplayRuns();
 });
