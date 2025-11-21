@@ -1,41 +1,44 @@
 <?php
+session_start(); // Necesario para acceder a $_SESSION
 header('Content-Type: application/json');
-
 require 'conex.php';
 
 $response = array();
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    
-    $nickname = $conn->real_escape_string($_POST['nickname']);
-    $game = $conn->real_escape_string($_POST['game']);
-    $category = $conn->real_escape_string($_POST['category']);
-    $time_record = $conn->real_escape_string($_POST['time_record']);
-    $video_link = $conn->real_escape_string($_POST['video_link']);
+// Verificar login
+if (!isset($_SESSION['user_id'])) {
+    echo json_encode(['status' => 'error', 'message' => 'Debes iniciar sesión.']);
+    exit;
+}
 
-    if (!empty($nickname) && !empty($game) && !empty($category) && !empty($time_record) && !empty($video_link)) {
-        
-        $stmt = $conn->prepare("INSERT INTO speedruns (nickname, game, category, time_record, video_link) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssss", $nickname, $game, $category, $time_record, $video_link);
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $user_id = $_SESSION['user_id']; // ID del usuario logueado
+    $nickname = $_SESSION['user'];   // Usamos el nick de la sesión para evitar fraudes
+    
+    $game = $_POST['game'];
+    $category = $_POST['category'];
+    $time_record = $_POST['time_record'];
+    $video_link = $_POST['video_link'];
+
+    if (!empty($game) && !empty($category) && !empty($time_record)) {
+        // Insertamos incluyendo el user_id
+        $stmt = $conn->prepare("INSERT INTO speedruns (user_id, nickname, game, category, time_record, video_link) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("isssss", $user_id, $nickname, $game, $category, $time_record, $video_link);
 
         if ($stmt->execute()) {
             $response['status'] = 'success';
             $response['message'] = '¡Speedrun registrado con éxito!';
         } else {
             $response['status'] = 'error';
-            $response['message'] = 'Error al registrar el speedrun: ' . $stmt->error;
+            $response['message'] = 'Error SQL: ' . $stmt->error;
         }
         $stmt->close();
     } else {
         $response['status'] = 'error';
-        $response['message'] = 'Todos los campos son obligatorios.';
+        $response['message'] = 'Completa todos los campos.';
     }
-} else {
-    $response['status'] = 'error';
-    $response['message'] = 'Método de solicitud no válido.';
 }
 
 $conn->close();
-
 echo json_encode($response);
 ?>
